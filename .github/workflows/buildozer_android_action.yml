@@ -1,19 +1,19 @@
-# Sample repository at https://github.com/Novfensec/SAMPLE-KIVYMD-APP
-# Tic Tac Toe Game at https://github.com/Novfensec/Tic-Tac-Toe-Android
-
 name: Android Build
 
 on:
   push:
     branches:
       - main
+      - master
+  workflow_dispatch: # Forces a manual "Run Workflow" button to appear in the Actions tab
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       # Used to cache dependencies with a timeout
       - name: Get Date
@@ -46,7 +46,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-android-sdk
 
-      # Install dependencies
+      # Install Linux build system system-level dependencies
       - name: Install dependencies
         run: |
           sudo apt update
@@ -70,7 +70,6 @@ jobs:
             sqlite3 \
             bzip2 \
             libbz2-dev \
-            zlib1g-dev \
             openssl \
             libgdbm-dev \
             libgdbm-compat-dev \
@@ -94,38 +93,37 @@ jobs:
             autopoint \
             gettext
 
-      # Set up Java 17 required by Gradle
+      # Set up Java 17 required by modern Gradle configurations
       - name: Setup Java 17 required by Gradle
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'  # or 'zulu', 'liberica', etc.
+          distribution: 'temurin'
           java-version: '17'
 
-      # Set up Python
+      # Set up Python Environment runtime layer
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' #set your python version
+          python-version: '3.11'
 
-      # Install pip dependencies
+      # Install pip package configurations
       - name: Install pip dependencies
         run: |
-          pip install --upgrade pip
-          pip install buildozer cython
+          python -m pip install --upgrade pip setuptools wheel virtualenv
+          pip install "Cython>=3.0,<4" "buildozer>=1.5.0"
 
-      # Build with Buildozer
+      # Build with Buildozer (Automated License acceptance injected)
       - name: Build with Buildozer
-        id: buildozer
+        env:
+          BUILDOZER_WARN_ON_ROOT: "0"
+          APP_ANDROID_ACCEPT_SDK_LICENSE: "1"
         run: |
           yes | buildozer -v android debug
-        # yes | buildozer -v android release
-        # run this for generating aab (Android App Bundle) [Required by google play]
 
-      # Upload artifacts
+      # Upload completed Android APK binary artifacts out of cloud runners
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: |
-            bin/*.apk
-            bin/*.aab
+          name: Standalone-Android-Package
+          path: bin/*.apk
+          
